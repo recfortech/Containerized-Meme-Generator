@@ -1,2 +1,2 @@
-# Containerized-Meme-Generator---SRE-Academy
+# Containerized-Meme-Generator
 Final project for SRE Academy
