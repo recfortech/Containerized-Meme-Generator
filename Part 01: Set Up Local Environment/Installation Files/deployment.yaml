@@ -16,8 +16,10 @@ spec:
     spec:
       containers:
         - name: meme-flask-container
-          image: meme-flask:v2
+          image: meme-flask:latest
           imagePullPolicy: Never
+          workingDir: /app
+          command: ["python", "meme-flask.py"]
           ports:
             - containerPort: 5000
           env:
@@ -25,8 +27,18 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: status.podIP
+          volumeMounts:
+            - name: app-code
+              mountPath: /app
+              readOnly: true
           securityContext:
             runAsNonRoot: true
+            runAsUser: 1000
             allowPrivilegeEscalation: false
             capabilities:
               drop: ["ALL"]
+      volumes:
+        - name: app-code
+          hostPath:
+            path: /mnt/meme
+            type: Directory
