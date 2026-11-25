@@ -1,22 +1,32 @@
-from flask import Flask, render_template
+import logging
+import os
+
 import requests
-import json
+from flask import Flask, render_template
 
 app = Flask(__name__)
+logger = logging.getLogger(__name__)
+
+MEME_URL = "https://meme-api.com/gimme/wholesomememes"
+
 
 def get_meme():
-    sr = "/wholesomememes"
-    url = "https://meme-api.com/gimme" + sr 
-    response = json.loads(requests.request("GET", url).text)
-    meme_large = response["preview"][-2]
-    subreddit = response["subreddit"]
-    return meme_large, subreddit
+    response = requests.get(MEME_URL, timeout=10)
+    response.raise_for_status()
+    data = response.json()
+    return data["preview"][-2], data["subreddit"]
 
 
-@app.route('/')
+@app.route("/")
 def index():
-    meme_pic,subreddit = get_meme()
+    try:
+        meme_pic, subreddit = get_meme()
+    except (requests.RequestException, KeyError, IndexError, ValueError):
+        logger.error("Failed to fetch meme", exc_info=True)
+        return "Meme service unavailable, please try again later.", 502
     return render_template("index.html", meme_pic=meme_pic, subreddit=subreddit)
 
 
-app.run(host="0.0.0.0", port=5000)
+if __name__ == "__main__":
+    # Bind to the pod's own IP (set in deployment.yaml), not 0.0.0.0
+    app.run(host=os.environ["POD_IP"], port=5000)
