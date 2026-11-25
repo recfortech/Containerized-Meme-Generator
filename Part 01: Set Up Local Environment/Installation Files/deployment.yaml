@@ -1,0 +1,29 @@
+apiVersion: apps
+kind: Deployment
+metadata:
+ name: memeflask
+ labels:
+  app: meme-flask
+  replicas: 1
+  selector:
+    matchLabels:
+      app: meme-flask
+  template:
+    metadata:
+      labels:
+        app: meme-flask
+spec:
+  tolerations:
+    - key: "node.kubernetes.io/memory-pressure"
+      operator: "Exists"
+      effect: "NoSchedule"   
+ 
+spec:
+ containers:
+ - name: meme-flask-container
+   image: meme-flask:latest 
+   command: ["python", "meme-flask.py"]
+   ports: 
+   - containerPort: 8080
+   imagePullPolicy: Never
+
